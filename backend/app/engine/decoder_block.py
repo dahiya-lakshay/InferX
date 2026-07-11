@@ -49,7 +49,9 @@ class DecoderBlock(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        mask: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        kv_cache=None,
+        use_cache: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Forward pass through the decoder block.
@@ -60,8 +62,10 @@ class DecoderBlock(nn.Module):
         x = self.norm1(x)
 
         attention_output, attention_weights = self.attention(
-            x,
-            mask,
+            x=x,
+            attention_mask=attention_mask,
+            kv_cache=kv_cache,
+            use_cache=use_cache,
         )
 
         x = residual + self.dropout(attention_output)

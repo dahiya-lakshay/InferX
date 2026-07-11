@@ -66,8 +66,11 @@ class Transformer(nn.Module):
     def forward(
         self,
         token_ids: torch.Tensor,
-        mask: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        kv_cache=None,
+        use_cache: bool = False,
     ) -> torch.Tensor:
+
         """
         Forward pass through the Transformer.
 
@@ -85,7 +88,7 @@ class Transformer(nn.Module):
 
             x, _ = layer(
                 x,
-                mask,
+                attention_mask,
             )
 
         x = self.norm(x)

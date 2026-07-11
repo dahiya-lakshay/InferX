@@ -65,7 +65,9 @@ class MultiHeadAttention(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        mask: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        kv_cache=None,
+        use_cache: bool = False,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Apply multi-head self-attention.
@@ -126,7 +128,7 @@ class MultiHeadAttention(nn.Module):
             query=query,
             key=key,
             value=value,
-            mask=mask,
+            mask=attention_mask,
         )
 
         # Step 4: Merge attention heads

@@ -66,7 +66,7 @@ def test_mask_support():
         128,
     )
 
-    mask = torch.ones(
+    attention_mask = torch.ones(
         2,
         1,
         6,
@@ -75,7 +75,7 @@ def test_mask_support():
 
     output, weights = attention(
         x,
-        mask,
+        attention_mask,
     )
 
     assert output.shape == (
