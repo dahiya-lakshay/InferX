@@ -13,6 +13,9 @@ from app.engine.transformer import Transformer
 from app.tokenizer.tokenizer import Tokenizer
 from app.engine.sampling import greedy_sampling
 from app.engine.generation_config import GenerationConfig
+from app.engine.stopping import StoppingCriteria
+from app.engine.sequence import Sequence
+from app.engine.request import GenerationRequest
 
 class InferenceEngine:
     """
@@ -29,13 +32,13 @@ class InferenceEngine:
         self.model = model
         self.tokenizer = tokenizer
         self.sampling_strategy = sampling_strategy
+        self.stopping = StoppingCriteria()
 
     def generate(
         self,
         prompt: str,
         config: GenerationConfig | None = None,
     ) -> str:
-
         """
         Generate text autoregressively.
         """
@@ -43,15 +46,20 @@ class InferenceEngine:
         if config is None:
             config = GenerationConfig()
 
-        # Encode prompt
-        token_ids = self.tokenizer.encode(prompt)
+        request = GenerationRequest(
+            request_id="request_0",
+            prompt=prompt,
+            config=config,
+        )
 
-        generated_tokens = list(token_ids)
+        sequence = Sequence(request=request)
 
-        for _ in range(config.max_new_tokens):
+        sequence.token_ids = self.tokenizer.encode(prompt)
+
+        while not self.stopping.should_stop(sequence):
 
             input_tensor = torch.tensor(
-                [generated_tokens],
+                [sequence.all_tokens],
                 dtype=torch.long,
             )
 
@@ -59,9 +67,9 @@ class InferenceEngine:
 
             next_token = self._sample(logits)
 
-            generated_tokens.append(next_token)
+            sequence.append_token(next_token)
 
-        return self._decode(generated_tokens)
+        return self._decode(sequence.all_tokens)
 
 
     def _forward(
