@@ -17,36 +17,32 @@ from __future__ import annotations
 
 from typing import Tuple
 
-import numpy as np
+import torch
 
 
-def stable_softmax(logits: np.ndarray) -> np.ndarray:
+def stable_softmax(
+    logits: torch.Tensor,
+) -> torch.Tensor:
+
     """
     Compute a numerically stable softmax.
-
-    Parameters
-    ----------
-    logits : np.ndarray
-        Raw logits from the model.
-
-    Returns
-    -------
-    np.ndarray
-        Probability distribution.
     """
 
-    logits = np.asarray(logits, dtype=np.float64)
+    shifted_logits = logits - logits.max(
+        dim=-1,
+        keepdim=True,
+    ).values
 
-    shifted = logits - np.max(logits)
-    exp = np.exp(shifted)
-
-    return exp / np.sum(exp)
+    return torch.softmax(
+        shifted_logits,
+        dim=-1,
+    )
 
 
 def apply_temperature(
-    logits: np.ndarray,
+    logits: torch.Tensor,
     temperature: float = 1.0,
-) -> np.ndarray:
+) -> torch.Tensor:
     """
     Apply temperature scaling.
 
@@ -60,84 +56,74 @@ def apply_temperature(
     return logits / temperature
 
 
-def greedy_sample(logits: np.ndarray) -> int:
+def greedy_sample(
+    logits: torch.Tensor,
+) -> torch.Tensor:
     """
-    Select the token with the maximum probability.
-    """
+    Select the highest-probability token.
 
-    probs = stable_softmax(logits)
-
-    return int(np.argmax(probs))
-
-
-def random_sample(logits: np.ndarray) -> int:
-    """
-    Sample a token according to the probability distribution.
+    Supports batched logits.
     """
 
-    probs = stable_softmax(logits)
+    return torch.argmax(
+        logits,
+        dim=-1,
+    )
 
-    return int(np.random.choice(len(probs), p=probs))
+
+def random_sample(
+    logits: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Sample according to the probability distribution.
+    """
+
+    probabilities = stable_softmax(
+        logits,
+    )
+
+    return torch.multinomial(
+        probabilities,
+        num_samples=1,
+    ).squeeze(-1)
 
 
 def top_k_sample(
-    logits: np.ndarray,
+    logits: torch.Tensor,
     k: int,
-) -> Tuple[int, np.ndarray]:
-    """
-    Sample only from the top-k highest probability tokens.
-    """
+) -> torch.Tensor:
 
     if k <= 0:
-        raise ValueError("k must be positive")
+        raise ValueError(
+            "k must be positive"
+        )
 
-    probs = stable_softmax(logits)
+    values, indices = torch.topk(
+        logits,
+        k,
+        dim=-1,
+    )
 
-    k = min(k, len(probs))
+    probabilities = torch.softmax(
+        values,
+        dim=-1,
+    )
 
-    top_indices = np.argpartition(probs, -k)[-k:]
+    sampled = torch.multinomial(
+        probabilities,
+        num_samples=1,
+    )
 
-    top_probs = probs[top_indices]
-    top_probs /= np.sum(top_probs)
-
-    token = int(np.random.choice(top_indices, p=top_probs))
-
-    return token, top_indices
+    return indices.gather(
+        -1,
+        sampled,
+    ).squeeze(-1)
 
 
 def top_p_sample(
-    logits: np.ndarray,
+    logits: torch.Tensor,
     p: float = 0.9,
-) -> Tuple[int, np.ndarray]:
-    """
-    Nucleus (Top-p) sampling.
-
-    Keeps the smallest set of tokens whose cumulative
-    probability exceeds p.
-    """
-
-    if not 0 < p <= 1:
-        raise ValueError("p must be in (0, 1]")
-
-    probs = stable_softmax(logits)
-
-    sorted_indices = np.argsort(probs)[::-1]
-    sorted_probs = probs[sorted_indices]
-
-    cumulative = np.cumsum(sorted_probs)
-
-    cutoff = np.searchsorted(cumulative, p) + 1
-
-    candidate_indices = sorted_indices[:cutoff]
-    candidate_probs = sorted_probs[:cutoff]
-
-    candidate_probs /= np.sum(candidate_probs)
-
-    token = int(
-        np.random.choice(
-            candidate_indices,
-            p=candidate_probs,
-        )
+) -> torch.Tensor:
+    raise NotImplementedError(
+        "Torch implementation coming in Phase 6."
     )
-
-    return token, candidate_indices
