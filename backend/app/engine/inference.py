@@ -11,11 +11,11 @@ import torch
 
 from app.models.base_model import BaseModelAdapter
 from app.tokenizer.tokenizer import Tokenizer
-from app.engine.sampling import greedy_sample
 from app.engine.generation_config import GenerationConfig
 from app.engine.stopping import StoppingCriteria
 from app.engine.sequence import Sequence
 from app.engine.request import GenerationRequest
+from app.engine.sampler import Sampler
 
 class InferenceEngine:
     """
@@ -26,13 +26,12 @@ class InferenceEngine:
         self,
         model: BaseModelAdapter,
         tokenizer: Tokenizer,
-        sampling_strategy: str = "greedy",
     ) -> None:
 
         self.model = model
         self.tokenizer = tokenizer
-        self.sampling_strategy = sampling_strategy
         self.stopping = StoppingCriteria()
+        self.sampler = Sampler()
 
     def generate(
         self,
@@ -65,7 +64,10 @@ class InferenceEngine:
 
             logits = self._forward(input_tensor)
 
-            next_token = self._sample(logits)
+            next_token = self._sample(
+                logits,
+                config,
+            )
 
             sequence.append_token(next_token)
 
@@ -87,18 +89,18 @@ class InferenceEngine:
     def _sample(
         self,
         logits: torch.Tensor,
+        config: GenerationConfig,
     ) -> int:
         """
-        Sample the next token from model logits.
-
-        Currently uses greedy decoding.
+        Sample the next token using the configured strategy.
         """
 
         next_token_logits = logits[:, -1, :]
 
-        token = greedy_sample(next_token_logits)
-
-        return int(token.item())
+        return self.sampler.sample(
+            next_token_logits,
+            config,
+        )
 
     def _decode(
         self,
