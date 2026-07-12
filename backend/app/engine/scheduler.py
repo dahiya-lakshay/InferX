@@ -43,6 +43,7 @@ class Scheduler:
 
             sequence = Sequence(
                 request=request,
+                token_ids=[0],
             )
 
             self.active_sequences.append(
