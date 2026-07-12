@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import torch
 
-from app.engine.transformer import Transformer
+from app.models.base_model import BaseModelAdapter
 from app.tokenizer.tokenizer import Tokenizer
 from app.engine.sampling import greedy_sample
 from app.engine.generation_config import GenerationConfig
@@ -24,7 +24,7 @@ class InferenceEngine:
 
     def __init__(
         self,
-        model: Transformer,
+        model: BaseModelAdapter,
         tokenizer: Tokenizer,
         sampling_strategy: str = "greedy",
     ) -> None:
@@ -80,7 +80,9 @@ class InferenceEngine:
         Forward pass through the model.
         """
 
-        return self.model(token_ids)
+        return self.model.forward(
+            input_ids=token_ids,
+        )
 
     def _sample(
         self,
