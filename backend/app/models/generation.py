@@ -14,14 +14,29 @@ class GenerationRequest(BaseModel):
 
     prompt: str = Field(
         ...,
-        description="Input prompt for generation.",
+        description="Input prompt.",
     )
 
     max_new_tokens: int = Field(
         default=50,
         ge=1,
         le=1024,
-        description="Maximum number of new tokens to generate.",
+    )
+
+    temperature: float = Field(
+        default=1.0,
+        gt=0,
+    )
+
+    top_k: int = Field(
+        default=50,
+        ge=1,
+    )
+
+    top_p: float = Field(
+        default=1.0,
+        gt=0,
+        le=1,
     )
 
 

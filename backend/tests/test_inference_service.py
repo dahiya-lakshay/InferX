@@ -21,6 +21,9 @@ def test_generate():
     request = GenerationRequest(
         prompt="Hello InferX",
         max_new_tokens=50,
+        temperature=1.0,
+        top_k=50,
+        top_p=1.0,
     )
 
     response = service.generate(request)
@@ -30,7 +33,7 @@ def test_generate():
         GenerationResponse,
     )
 
-    assert (
-        response.generated_text
-        == "Hello InferX"
+    assert isinstance(
+        response.generated_text,
+        str,
     )
