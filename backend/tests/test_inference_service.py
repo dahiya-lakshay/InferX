@@ -2,6 +2,7 @@
 Unit tests for the InferX inference service.
 """
 
+from app.core.bootstrap import bootstrap
 from app.models.generation import (
     GenerationRequest,
     GenerationResponse,
@@ -12,6 +13,8 @@ from app.services.inference_service import (
 
 
 def test_generate():
+
+    bootstrap()
 
     service = InferenceService()
 
