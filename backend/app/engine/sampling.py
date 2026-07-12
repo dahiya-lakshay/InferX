@@ -124,6 +124,51 @@ def top_p_sample(
     logits: torch.Tensor,
     p: float = 0.9,
 ) -> torch.Tensor:
-    raise NotImplementedError(
-        "Torch implementation coming in Phase 6."
+    """
+    Sample from the smallest set of tokens whose
+    cumulative probability exceeds p.
+    """
+
+    if not 0 < p <= 1:
+        raise ValueError(
+            "p must be in (0, 1]"
+        )
+
+    probabilities = stable_softmax(
+        logits,
     )
+
+    sorted_probs, sorted_indices = torch.sort(
+        probabilities,
+        descending=True,
+        dim=-1,
+    )
+
+    cumulative_probs = torch.cumsum(
+        sorted_probs,
+        dim=-1,
+    )
+
+    keep = cumulative_probs <= p
+
+    keep[..., 0] = True
+
+    filtered_probs = sorted_probs * keep
+
+    filtered_probs = (
+        filtered_probs
+        / filtered_probs.sum(
+            dim=-1,
+            keepdim=True,
+        )
+    )
+
+    sampled = torch.multinomial(
+        filtered_probs,
+        num_samples=1,
+    )
+
+    return sorted_indices.gather(
+        -1,
+        sampled,
+    ).squeeze(-1)
