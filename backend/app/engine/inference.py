@@ -11,7 +11,7 @@ import torch
 
 from app.engine.transformer import Transformer
 from app.tokenizer.tokenizer import Tokenizer
-from app.engine.sampling import greedy_sampling
+from app.engine.sampling import greedy_sample
 from app.engine.generation_config import GenerationConfig
 from app.engine.stopping import StoppingCriteria
 from app.engine.sequence import Sequence
@@ -94,7 +94,7 @@ class InferenceEngine:
 
         next_token_logits = logits[:, -1, :]
 
-        token = greedy_sampling(next_token_logits)
+        token = greedy_sample(next_token_logits)
 
         return int(token.item())
 
