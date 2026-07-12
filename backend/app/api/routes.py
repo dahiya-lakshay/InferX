@@ -11,6 +11,8 @@ from app.models.generation import (
     GenerationResponse,
 )
 
+from app.services.inference_service import inference_service
+
 router = APIRouter(
     prefix="/api/v1",
     tags=["Inference"],
@@ -37,9 +39,7 @@ def generate(
     request: GenerationRequest,
 ):
     """
-    Temporary generation endpoint.
+    Generate text using the inference service.
     """
 
-    return GenerationResponse(
-        generated_text=request.prompt,
-    )
+    return inference_service.generate(request)
