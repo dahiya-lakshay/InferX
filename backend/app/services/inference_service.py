@@ -7,8 +7,13 @@ and the inference engine.
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 from app.core.engine_registry import engine_registry
 from app.engine.generation_config import GenerationConfig
+from app.engine.request import (
+    GenerationRequest as RuntimeGenerationRequest,
+)
 from app.models.generation import (
     GenerationRequest,
     GenerationResponse,
@@ -38,9 +43,14 @@ class InferenceService:
             do_sample=request.do_sample,
         )
 
-        generated_text = engine.generate(
+        runtime_request = RuntimeGenerationRequest(
+            request_id=str(uuid4()),
             prompt=request.prompt,
             config=config,
+        )
+
+        generated_text = engine.generate(
+            runtime_request,
         )
 
         return GenerationResponse(

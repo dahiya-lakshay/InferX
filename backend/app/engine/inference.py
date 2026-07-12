@@ -35,15 +35,15 @@ class InferenceEngine:
 
     def generate(
         self,
-        prompt: str,
-        config: GenerationConfig | None = None,
+        request: GenerationRequest,
     ) -> str:
         """
         Generate text autoregressively.
         """
 
-        if config is None:
-            config = GenerationConfig()
+        config = request.config
+
+        prompt = request.prompt
 
         if (
             config.eos_token_id is None
@@ -56,12 +56,6 @@ class InferenceEngine:
             and hasattr(self.tokenizer, "pad_token_id")
         ):
             config.pad_token_id = self.tokenizer.pad_token_id
-
-        request = GenerationRequest(
-            request_id="request_0",
-            prompt=prompt,
-            config=config,
-        )
 
         sequence = Sequence(request=request)
 
