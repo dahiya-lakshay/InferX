@@ -33,10 +33,11 @@ class DecodeStep:
         Generate one token for every sequence.
         """
 
-        input_ids = batch.build_input_ids()
+        input_ids, attention_mask = batch.build_inputs()
 
         logits = self.model.forward(
             input_ids=input_ids,
+            attention_mask=attention_mask,
         )
 
         next_token_logits = logits[:, -1, :]

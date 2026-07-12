@@ -41,29 +41,41 @@ class Batch:
             for sequence in self.sequences
         )
 
-    def build_input_ids(
+    def build_inputs(
         self,
         pad_token_id: int = 0,
-    ) -> torch.Tensor:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Build padded input tensor.
+        Build padded input ids and attention mask.
         """
 
         max_len = self.max_sequence_length
 
-        batch = []
+        input_batch = []
+        attention_batch = []
 
         for sequence in self.sequences:
 
             tokens = sequence.all_tokens
 
-            padded = tokens + [
-                pad_token_id
-            ] * (max_len - len(tokens))
+            padding = max_len - len(tokens)
 
-            batch.append(padded)
+            input_batch.append(
+                tokens + [pad_token_id] * padding
+            )
 
-        return torch.tensor(
-            batch,
-            dtype=torch.long,
+            attention_batch.append(
+                [1] * len(tokens)
+                + [0] * padding
+            )
+
+        return (
+            torch.tensor(
+                input_batch,
+                dtype=torch.long,
+            ),
+            torch.tensor(
+                attention_batch,
+                dtype=torch.long,
+            ),
         )

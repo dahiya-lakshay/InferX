@@ -46,24 +46,23 @@ def test_max_sequence_length():
 
     assert batch.max_sequence_length == 3
 
-
-def test_build_input_ids():
+def test_build_inputs():
 
     batch = Batch(
         [
-            make_sequence([1, 2]),
-            make_sequence([3]),
+            make_sequence([1, 2, 3]),
+            make_sequence([4, 5]),
         ]
     )
 
-    tensor = batch.build_input_ids()
+    input_ids, attention_mask = batch.build_inputs()
 
-    assert isinstance(
-        tensor,
-        torch.Tensor,
-    )
+    assert input_ids.tolist() == [
+        [1, 2, 3],
+        [4, 5, 0],
+    ]
 
-    assert tensor.shape == (
-        2,
-        2,
-    )
+    assert attention_mask.tolist() == [
+        [1, 1, 1],
+        [1, 1, 0],
+    ]
