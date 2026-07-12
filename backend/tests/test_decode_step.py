@@ -13,6 +13,9 @@ class DummyModel(nn.Module):
     def forward(
         self,
         input_ids,
+        attention_mask=None,
+        kv_cache=None,
+        use_cache=False,
     ):
 
         batch_size, sequence_length = input_ids.shape

@@ -6,10 +6,9 @@ Executes one decoding iteration for an entire batch.
 
 from __future__ import annotations
 
-import torch
-
 from app.engine.batch import Batch
-from app.engine.sampling import greedy_sample
+from app.engine.generation_config import GenerationConfig
+from app.engine.sampler import Sampler
 
 
 class DecodeStep:
@@ -18,9 +17,13 @@ class DecodeStep:
     active sequence.
     """
 
-    def __init__(self, model) -> None:
+    def __init__(
+        self,
+        model,
+    ) -> None:
 
         self.model = model
+        self.sampler = Sampler()
 
     def forward(
         self,
@@ -32,18 +35,20 @@ class DecodeStep:
 
         input_ids = batch.build_input_ids()
 
-        logits = self.model(input_ids)
+        logits = self.model.forward(
+            input_ids=input_ids,
+        )
 
         next_token_logits = logits[:, -1, :]
 
-        next_tokens = greedy_sample(
-            next_token_logits,
-        )
-
-        for sequence, token in zip(
+        for sequence, token_logits in zip(
             batch.sequences,
-            next_tokens,
+            next_token_logits,
         ):
-            sequence.append_token(
-                int(token.item())
+
+            next_token = self.sampler.sample(
+                token_logits,
+                sequence.request.config,
             )
+
+            sequence.append_token(next_token)
