@@ -45,6 +45,18 @@ class InferenceEngine:
         if config is None:
             config = GenerationConfig()
 
+        if (
+            config.eos_token_id is None
+            and hasattr(self.tokenizer, "eos_token_id")
+        ):
+            config.eos_token_id = self.tokenizer.eos_token_id
+
+        if (
+            config.pad_token_id is None
+            and hasattr(self.tokenizer, "pad_token_id")
+        ):
+            config.pad_token_id = self.tokenizer.pad_token_id
+
         request = GenerationRequest(
             request_id="request_0",
             prompt=prompt,

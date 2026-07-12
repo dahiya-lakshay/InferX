@@ -20,10 +20,11 @@ def test_generate():
 
     request = GenerationRequest(
         prompt="Hello InferX",
-        max_new_tokens=50,
+        max_new_tokens=20,
         temperature=1.0,
         top_k=50,
         top_p=1.0,
+        do_sample=False,
     )
 
     response = service.generate(request)

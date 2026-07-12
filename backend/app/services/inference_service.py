@@ -35,6 +35,7 @@ class InferenceService:
             temperature=request.temperature,
             top_k=request.top_k,
             top_p=request.top_p,
+            do_sample=request.do_sample,
         )
 
         generated_text = engine.generate(

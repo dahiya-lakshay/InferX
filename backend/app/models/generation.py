@@ -39,6 +39,10 @@ class GenerationRequest(BaseModel):
         le=1,
     )
 
+    do_sample: bool = Field(
+        default=False,
+    )
+
 
 class GenerationResponse(BaseModel):
     """
