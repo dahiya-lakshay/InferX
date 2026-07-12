@@ -54,3 +54,6 @@ typer==0.26.8
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 uvicorn==0.51.0
+transformers>=4.53.0
+accelerate>=1.8.0
+safetensors>=0.5.3
